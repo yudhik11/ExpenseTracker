@@ -23,8 +23,7 @@ public class UserResource extends ResourceAbstract {
             Expense expense = expenseTrackerService.addExpense(groupExpense);
             return ResponseEntity.ok()
                     .body(String.format(String.format("Group expense successfully added: %s", expense.toString())));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(String.format("Error processing expense: %s", groupExpense.toString()));
         }
@@ -42,13 +41,12 @@ public class UserResource extends ResourceAbstract {
 
 
     @PostMapping("addUserExpense")
-    public ResponseEntity<String> addExpense(@RequestBody  UsersExpense usersExpense) {
+    public ResponseEntity<String> addExpense(@RequestBody UsersExpense usersExpense) {
         try {
             Expense expense = expenseTrackerService.addExpense(usersExpense);
             return ResponseEntity.ok()
                     .body(String.format(String.format("Users expense successfully added: %s", expense.toString())));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(String.format("Error processing expense: %s", usersExpense.toString()));
         }
@@ -60,8 +58,7 @@ public class UserResource extends ResourceAbstract {
             User tmp = userController.createUser(user);
             expenseTrackerService.getBalanceSheet().put(user, new HashMap<>());
             return ResponseEntity.ok().body(String.format("User %s added successfully", user.toString()));
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
                     .body(String.format("User already added: %s", user.toString()));
         }
@@ -88,8 +85,7 @@ public class UserResource extends ResourceAbstract {
             Group group = userController.createGroup((Integer) requestBody.get("groupId"),
                     (List<Integer>) requestBody.get("userIds"));
             return ResponseEntity.ok().body(String.format("Group %s added successfully", group.toString()));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
                     .body(String.format("Group already added: %s", userController.getGroup(Integer.valueOf((String) requestBody.get("groupId")))));
         }
@@ -97,7 +93,7 @@ public class UserResource extends ResourceAbstract {
 
     @GetMapping("getGroups")
     public List<Group> getGroups() {
-        return  userController.getGroups();
+        return userController.getGroups();
     }
 
     @GetMapping("getGroup")

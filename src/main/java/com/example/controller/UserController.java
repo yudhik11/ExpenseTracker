@@ -21,13 +21,13 @@ public class UserController {
         groups = new HashMap<>();
 
     }
+
     public User createUser(User user) {
         log.info(String.format("Submitted request to add user with id: %d", user.getUserId()));
-        if (userMap.containsKey(user.getUserId())){
+        if (userMap.containsKey(user.getUserId())) {
             log.error(String.format("User with id: %d already exists: '%s'", user.getUserId(), user.toString()));
             throw new RuntimeException(String.format("User already added: %s", user.toString()));
-        }
-        else {
+        } else {
             userMap.put(user.getUserId(), user);
             log.info(String.format("User with id: %d successfully added: '%s'", user.getUserId(), user.toString()));
             return user;
@@ -36,13 +36,12 @@ public class UserController {
 
     public Group createGroup(int groupId, List<Integer> userIds) {
         log.info(String.format("Submitted request to add user with id: %d", groupId));
-        if (groups.containsKey(groupId)){
+        if (groups.containsKey(groupId)) {
             log.error(String.format("Group with id: %d already exists: '%s'", groupId, groups.get(groupId).toString()));
             throw new RuntimeException(String.format("Group already added: '%s'", groups.get(groupId).toString()));
-        }
-        else {
+        } else {
             List<User> users = Lists.newArrayList();
-            for (Integer id: userIds) {
+            for (Integer id : userIds) {
                 if (userMap.containsKey(id)) {
                     users.add(userMap.get(id));
                 }

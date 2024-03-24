@@ -13,10 +13,10 @@ import java.util.Set;
 @ToString
 public class Group {
     private Set<User> userList;
-    
+
     @NonNull
     private Integer groupId;
-    
+
     public Group(int groupId) {
         this.groupId = groupId;
         this.userList = new HashSet<>();
@@ -26,7 +26,7 @@ public class Group {
         this.groupId = groupId;
         this.userList = users;
     }
-    
+
     public void addUser(User user) {
         this.userList.add(user);
     }
