@@ -15,7 +15,7 @@ import java.util.List;
 public class UsersExpense extends Expense {
     private List<Integer> userIds;
 
-    public UsersExpense(SplitType splitType, List<Split> splits, String label, Integer paidByUserId, Double amount, List<Integer> userIds) {
+    public UsersExpense(SplitType splitType, List<? extends Split> splits, String label, Integer paidByUserId, Double amount, List<Integer> userIds) {
         super(splitType, splits, label, paidByUserId, amount);
         this.userIds = userIds;
     }

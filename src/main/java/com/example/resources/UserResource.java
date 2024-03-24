@@ -2,6 +2,7 @@ package com.example.resources;
 
 import com.example.models.Group;
 import com.example.models.User;
+import com.example.models.expense.Expense;
 import com.example.models.expense.GroupExpense;
 import com.example.models.expense.UsersExpense;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,16 @@ import java.util.Map;
 public class UserResource extends ResourceAbstract {
 
     @PostMapping("addGroupExpense")
-    public void addExpense(@RequestBody GroupExpense groupExpense) throws InstantiationException, IllegalAccessException {
-        expenseTrackerService.addExpense(groupExpense);
+    public ResponseEntity<String> addExpense(@RequestBody GroupExpense groupExpense) throws InstantiationException, IllegalAccessException {
+        try {
+            Expense expense = expenseTrackerService.addExpense(groupExpense);
+            return ResponseEntity.ok()
+                    .body(String.format(String.format("Group expense successfully added: %s", expense.toString())));
+        }
+        catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(String.format("Error processing expense: %s", groupExpense.toString()));
+        }
     }
 
     @GetMapping("showBalanceForUser")
@@ -26,21 +35,35 @@ public class UserResource extends ResourceAbstract {
         expenseTrackerService.showBalanceForUser(id);
     }
 
+    @GetMapping("showAllBalances")
+    public void showAllBalances() {
+        expenseTrackerService.showAllBalances();
+    }
+
+
     @PostMapping("addUserExpense")
-    public void addExpense(@RequestBody  UsersExpense usersExpense) {
-        expenseTrackerService.addExpense(usersExpense);
+    public ResponseEntity<String> addExpense(@RequestBody  UsersExpense usersExpense) {
+        try {
+            Expense expense = expenseTrackerService.addExpense(usersExpense);
+            return ResponseEntity.ok()
+                    .body(String.format(String.format("Users expense successfully added: %s", expense.toString())));
+        }
+        catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(String.format("Error processing expense: %s", usersExpense.toString()));
+        }
     }
 
     @PostMapping("createUser")
     public ResponseEntity<String> addUser(@RequestBody User user) {
-        Boolean added = userController.createUser(user);
-        if (added) {
+        try {
+            User tmp = userController.createUser(user);
             expenseTrackerService.getBalanceSheet().put(user, new HashMap<>());
             return ResponseEntity.ok().body(String.format("User %s added successfully", user.toString()));
         }
-        else {
+        catch(Exception e) {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
-                    .body("User already added");
+                    .body(String.format("User already added: %s", user.toString()));
         }
     }
 
@@ -60,14 +83,16 @@ public class UserResource extends ResourceAbstract {
     }
 
     @PostMapping("createGroup")
-    public void addGroup(@RequestBody Map<String, Object> requestBody) {
-        userController.createGroup((Integer) requestBody.get("groupId"),
-                (List<Integer>) requestBody.get("userIds"));
-    }
-
-    @PostMapping("createAGroup")
-    public void addAGroup(@RequestBody Integer groupId, @RequestBody List<Integer> userIds) {
-        userController.createGroup(groupId, userIds);
+    public ResponseEntity<String> addGroup(@RequestBody Map<String, Object> requestBody) {
+        try {
+            Group group = userController.createGroup((Integer) requestBody.get("groupId"),
+                    (List<Integer>) requestBody.get("userIds"));
+            return ResponseEntity.ok().body(String.format("Group %s added successfully", group.toString()));
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(String.format("Group already added: %s", userController.getGroup(Integer.valueOf((String) requestBody.get("groupId")))));
+        }
     }
 
     @GetMapping("getGroups")

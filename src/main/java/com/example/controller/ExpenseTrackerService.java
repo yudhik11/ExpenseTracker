@@ -27,7 +27,7 @@ public class ExpenseTrackerService {
         this.userController = userController;
     }
 
-    public void addExpense(Expense expense) {
+    public Expense addExpense(Expense expense) {
         log.info(String.format("Submitted request to add expense : %s", expense.toString()));
         System.out.println(expense.toString());
         List<Integer> userIdList;
@@ -44,10 +44,18 @@ public class ExpenseTrackerService {
                     .filter(u -> userController.userMap.containsKey(u.getClass()))
                     .collect(Collectors.toList());
         }
-        resolveExpense((Expense) expense, userIdList);
+
+        Expense updatedExpense;
+        try {
+            updatedExpense = resolveExpense((Expense) expense, userIdList);
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        return updatedExpense;
     }
 
-    private void resolveExpense(Expense expense, List<Integer> userIdList) {
+    private Expense resolveExpense(Expense expense, List<Integer> userIdList) {
         SplitType splitType = expense.getSplitType();
         int n_users = expense.getSplits().size();
         boolean validate = true;
@@ -62,8 +70,9 @@ public class ExpenseTrackerService {
                     }
                 }
                 if (!validate) {
-                    log.error(String.format("Per user share = (%f / %f) ~= %f is different that provided amount", expense.getAmount(), expense.getSplits().size(), splitPerPerson));
-                    return;
+                    String errorMessage = String.format("Per user share = (%f / %d) ~= %f is different that provided amount", expense.getAmount(), expense.getSplits().size(), splitPerPerson);
+                    log.error(errorMessage);
+                    throw new RuntimeException(errorMessage);
                 }
                 break;
             }
@@ -71,15 +80,17 @@ public class ExpenseTrackerService {
                 Double totalPaid = 0.0;
                 for (Split split : expense.getSplits()) {
                     if (Objects.isNull(split.getAmount())) {
-                        log.error(String.format("Amount not specified in case of exact split"));
-                        return;
+                        String errorMessage = String.format("Amount not specified in case of exact split");
+                        log.error(errorMessage);
+                        throw new RuntimeException(errorMessage);
                     }
                     totalPaid += split.getAmount();
                 }
                 validate &= Math.abs(totalPaid - expense.getAmount()) < 1e-2;
                 if (!validate) {
-                    log.error(String.format("Sum of total share %f is different that provided amount %f", totalPaid, expense.getAmount()));
-                    return;
+                    String errorMessage = String.format("Sum of total share %f is different that provided amount %f", totalPaid, expense.getAmount());
+                    log.error(errorMessage);
+                    throw new RuntimeException(errorMessage);
                 }
                 break;
             }
@@ -87,8 +98,9 @@ public class ExpenseTrackerService {
                 Double totalPercent = 0.0;
                 for (Split split : expense.getSplits()) {
                     if (!(split instanceof PercentSplit)) {
-                        log.error(String.format("Percent not provided amount for splitType percent"));
-                        return;
+                        String errorMessage = String.format("Percent not provided amount for splitType percent");
+                        log.error(errorMessage);
+                        throw new RuntimeException(errorMessage);
                     }
                     double percentShare = ((PercentSplit) split).getPercent();
                     totalPercent += percentShare;
@@ -100,14 +112,16 @@ public class ExpenseTrackerService {
                 }
                 validate &= Math.abs(totalPercent - 100.0) < 1e-2;
                 if (!validate) {
-                    log.error(String.format("Sum of total percent %f do not add up to 100", totalPercent));
-                    return;
+                    String errorMessage = String.format("Sum of total percent %f do not add up to 100", totalPercent);
+                    log.error(errorMessage);
+                    throw new RuntimeException(errorMessage);
                 }
                 break;
             }
         }
         expenses.add(expense);
         processExpense(expense);
+        return expense;
     }
 
     private void processExpense(Expense expense) {
@@ -141,19 +155,30 @@ public class ExpenseTrackerService {
             }
         }
     }
+    public void showAllBalances () {
+        for (User user: balanceSheet.keySet()) {
+            User thisUser = userController.userMap.get(user.getUserId());
+            for (Entry<User, Double> userBalance : balanceSheet.get(thisUser).entrySet()) {
+                //We don't want to print balance to self, which will be Zero ideally
+                if (userBalance.getKey() != thisUser) {
+                    printBalances(user.getUserId(), userBalance);
+                }
+            }
+        }
+    }
 
     private void printBalances(Integer userId, Entry<User, Double> userBalance) {
         if (userBalance.getValue()!= 0) {
             if (userBalance.getValue()<0) {
                 System.out.println(userController.userMap.get(userId).getName()+" owes "+Math.abs(userBalance.getValue())+" to "+userBalance.getKey().getName());
-                return;
             }
-            System.out.println(userBalance.getKey().getName()+" owes "+Math.abs(userBalance.getValue())+" to "+ userController.userMap.get(userId).getName());
+            else {
+                System.out.println(userController.userMap.get(userId).getName()+" is owed "+Math.abs(userBalance.getValue())+" by "+userBalance.getKey().getName());
+            }
             return;
         }
         System.out.println("No balances for "+userId);
     }
 
-    public void showAllBalances () {
-    }
+
 }

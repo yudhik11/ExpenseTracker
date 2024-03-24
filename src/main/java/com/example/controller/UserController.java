@@ -21,23 +21,24 @@ public class UserController {
         groups = new HashMap<>();
 
     }
-    public Boolean createUser(User user) {
+    public User createUser(User user) {
         log.info(String.format("Submitted request to add user with id: %d", user.getUserId()));
         if (userMap.containsKey(user.getUserId())){
-            log.info(String.format("User with id: %d already exists: '%s'", user.getUserId(), user.toString()));
-            return false;
+            log.error(String.format("User with id: %d already exists: '%s'", user.getUserId(), user.toString()));
+            throw new RuntimeException(String.format("User already added: %s", user.toString()));
         }
         else {
             userMap.put(user.getUserId(), user);
             log.info(String.format("User with id: %d successfully added: '%s'", user.getUserId(), user.toString()));
-            return true;
+            return user;
         }
     }
 
-    public void createGroup(int groupId, List<Integer> userIds) {
+    public Group createGroup(int groupId, List<Integer> userIds) {
         log.info(String.format("Submitted request to add user with id: %d", groupId));
         if (groups.containsKey(groupId)){
-            log.info(String.format("User with id: %d already exists: '%s'", groupId, groups.get(groupId).toString()));
+            log.error(String.format("Group with id: %d already exists: '%s'", groupId, groups.get(groupId).toString()));
+            throw new RuntimeException(String.format("Group already added: '%s'", groups.get(groupId).toString()));
         }
         else {
             List<User> users = Lists.newArrayList();
@@ -48,7 +49,8 @@ public class UserController {
             }
             Group group = new Group(groupId, Sets.newHashSet(users));
             groups.put(groupId, group);
-            log.info(String.format("User with id: %d successfully added: '%s'", group.getGroupId(), group.toString()));
+            log.info(String.format("Group with id: %d successfully added: '%s'", group.getGroupId(), group.toString()));
+            return group;
         }
     }
 
