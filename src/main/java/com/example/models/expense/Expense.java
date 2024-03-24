@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public abstract class Expense {
     protected SplitType splitType;
-    protected List<? extends Split> splits;
+    protected List<Split> splits;
     protected String label;
     protected Integer paidByUserId;
     protected Double amount;
