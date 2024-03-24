@@ -23,6 +23,7 @@ public class ExpenseTrackerService {
     private List<Expense> expenses = Lists.newArrayList();
     private Map<User, Map<User, Double>> balanceSheet = new HashMap<>();
     private UserController userController;
+
     public ExpenseTrackerService(UserController userController) {
         this.userController = userController;
     }
@@ -37,8 +38,7 @@ public class ExpenseTrackerService {
             userIdList = userList.stream()
                     .map(u -> u.getUserId())
                     .collect(Collectors.toList());
-        }
-        else {
+        } else {
             userIdList = ((UsersExpense) expense).getUserIds();
             userIdList = userIdList.stream()
                     .filter(u -> userController.userMap.containsKey(u.getClass()))
@@ -48,8 +48,7 @@ public class ExpenseTrackerService {
         Expense updatedExpense;
         try {
             updatedExpense = resolveExpense((Expense) expense, userIdList);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             throw e;
         }
         return updatedExpense;
@@ -132,7 +131,7 @@ public class ExpenseTrackerService {
             if (!balances.containsKey(paidTo)) {
                 balances.put(paidTo, 0.0);
             }
-            balances.put(paidTo, balances.get(paidTo)+split.getAmount());
+            balances.put(paidTo, balances.get(paidTo) + split.getAmount());
             balances = balanceSheet.get(paidTo);
 
             if (!balances.containsKey(paidBy)) {
@@ -142,42 +141,35 @@ public class ExpenseTrackerService {
         }
     }
 
+    public void showAllBalances() {
+        for (User user : balanceSheet.keySet()) {
+            showBalanceForUser(user.getUserId());
+        }
+    }
+
     public void showBalanceForUser(Integer userId) {
         User thisUser = userController.userMap.get(userId);
-        if (thisUser == null){
+        if (thisUser == null) {
             System.out.println("User doesn't exist");
             return;
         }
         for (Entry<User, Double> userBalance : balanceSheet.get(thisUser).entrySet()) {
-            //We don't want to print balance to self, which will be Zero ideally
-            if (userBalance.getKey()!=thisUser) {
+            if (userBalance.getKey() != thisUser) {
                 printBalances(userId, userBalance);
-            }
-        }
-    }
-    public void showAllBalances () {
-        for (User user: balanceSheet.keySet()) {
-            User thisUser = userController.userMap.get(user.getUserId());
-            for (Entry<User, Double> userBalance : balanceSheet.get(thisUser).entrySet()) {
-                //We don't want to print balance to self, which will be Zero ideally
-                if (userBalance.getKey() != thisUser) {
-                    printBalances(user.getUserId(), userBalance);
-                }
             }
         }
     }
 
     private void printBalances(Integer userId, Entry<User, Double> userBalance) {
-        if (userBalance.getValue()!= 0) {
-            if (userBalance.getValue()<0) {
-                System.out.println(userController.userMap.get(userId).getName()+" owes "+Math.abs(userBalance.getValue())+" to "+userBalance.getKey().getName());
-            }
-            else {
-                System.out.println(userController.userMap.get(userId).getName()+" is owed "+Math.abs(userBalance.getValue())+" by "+userBalance.getKey().getName());
+        if (userBalance.getValue() != 0) {
+            if (userBalance.getValue() < 0) {
+                System.out.println(userController.userMap.get(userId).getName() + " owes " + Math.abs(userBalance.getValue()) + " to " + userBalance.getKey().getName());
+            } else {
+                System.out.println(userController.userMap.get(userId).getName() + " is owed " + Math.abs(userBalance.getValue()) + " by " + userBalance.getKey().getName());
             }
             return;
         }
-        System.out.println("No balances for "+userId);
+        System.out.println("No balances for " + userId);
     }
 
 
